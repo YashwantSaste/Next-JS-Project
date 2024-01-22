@@ -1,8 +1,8 @@
 import { getKindeServerSession } from '@kinde-oss/kinde-auth-nextjs/server';
-import { publicProcedure, router } from './trpc';
+import { privateProcedure, publicProcedure, router } from './trpc';
 import { TRPCError } from '@trpc/server'
 import { dbConfig } from '@/config';
-
+import { z } from "zod"
 export const appRouter = router({
   authCallBack: publicProcedure.query(async () => {
     const { getUser } = getKindeServerSession();
@@ -34,6 +34,41 @@ export const appRouter = router({
     }
 
     return { success: true };
+  }),
+  //the getUserFiles is not a publicProcedure but a authenticated procedure
+  getUserFiles: privateProcedure.query(async({ctx})=>{
+     const { userId, user}=  ctx;
+
+     return await dbConfig.file.findMany({
+      where:{
+        userId
+      }
+     })
+  }),
+  //delete the files
+  deleteFiles : privateProcedure.input(
+    z.object({id:z.string()})
+  ).mutation(async({ctx,input})=>{
+    const {userId} = ctx
+
+    const file=await dbConfig.file.findFirst({
+      where:{
+        id:input.id,
+        userId
+      }
+    })
+
+    if(!file){
+      throw new TRPCError({code:"NOT_FOUND"})
+    }
+
+    await dbConfig.file.delete({
+      where:{
+        id:input.id,
+      }
+    })
+
+    return file
   }),
 });
 
