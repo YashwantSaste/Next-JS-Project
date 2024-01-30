@@ -36,15 +36,47 @@ export const appRouter = router({
     return { success: true };
   }),
   //the getUserFiles is not a publicProcedure but a authenticated procedure
-  getUserFiles: privateProcedure.query(async({ctx})=>{
-     const { userId, user}=  ctx;
+  getUserFiles: privateProcedure.query(async ({ ctx }) => {
+    try {
+        const { userId, user } = ctx;
 
-     return await dbConfig.file.findMany({
+        if (!userId) {
+            throw new Error("userId is undefined");
+        }
+
+        const files = await dbConfig.file.findMany({
+            where: {
+                userId
+            }
+        });
+
+        return files;
+    } catch (error) {
+        console.error("Error in getUserFiles:", error);
+        throw new Error("Failed to retrieve user files");
+    }
+}),
+
+
+  //the polling approach of constantly getting the file
+
+  getFile : privateProcedure.input(z.object({key: z.string()})).mutation(async({ctx,input})=>{
+    const {userId}=ctx;
+
+    const file= await dbConfig.file.findFirst({
       where:{
-        userId
-      }
-     })
+        key:input.key,
+        userId,
+      },
+    })
+
+    if(!file){
+      throw new TRPCError({code:"NOT_FOUND"})
+    }
+
+    return file
   }),
+
   //delete the files
   deleteFiles : privateProcedure.input(
     z.object({id:z.string()})

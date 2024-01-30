@@ -4,6 +4,8 @@ import { Dialog, DialogTrigger } from "@radix-ui/react-dialog"
 import { useState } from "react"
 import { Button } from "./ui/button"
 import { DialogContent } from "./ui/dialog"
+import UploadDropzone from "./UploadDropzone"
+import Dropzone from "react-dropzone"
 const UploadButton = () => {
     const [isOpen, setIsOpen]=useState<boolean>(false)
   return (
@@ -17,7 +19,7 @@ const UploadButton = () => {
         </DialogTrigger>
 
         <DialogContent>
-            Example Content
+            <UploadDropzone/>
         </DialogContent>
     </Dialog>
   )
