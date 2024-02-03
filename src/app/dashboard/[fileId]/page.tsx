@@ -25,7 +25,7 @@ const Page=async({params}:PageProps)=>{
             userId:user.id
         }
     })
-
+    
     if(!file){
         notFound() 
     }
