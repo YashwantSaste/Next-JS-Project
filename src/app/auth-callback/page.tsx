@@ -6,7 +6,7 @@ import React from 'react';
 import { trpc } from '../_trpc/client';
 import { Loader2 } from 'lucide-react';
 
-const Page =  () => {
+const HomePage =  () => {
     const router = useRouter(); 
     const searchParams = useSearchParams();
     const origin = searchParams.get('origin');
@@ -42,4 +42,4 @@ const Page =  () => {
     );
 };
 
-export default Page;
+export default HomePage;
