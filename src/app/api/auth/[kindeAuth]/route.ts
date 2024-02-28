@@ -4,11 +4,6 @@ import { NextRequest } from "next/server";
 export async function GET(
     request:NextRequest,
     {params}:any){
-    try{
-        const endpoint=params.kindeAuth;
-        return handleAuth(request,endpoint)
-    }
-    catch(error){
-        return Error("Something went wrong")
-    }
+    const endpoint=params.kindeAuth;
+    return handleAuth(request,endpoint)
 }
