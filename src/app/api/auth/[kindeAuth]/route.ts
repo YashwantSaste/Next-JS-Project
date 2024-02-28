@@ -5,5 +5,5 @@ export async function GET(
     request:NextRequest,
     {params}:any){
     const endpoint=params.kindeAuth;
-    return await handleAuth(request,endpoint)
+    return handleAuth(request,endpoint)!
 }
