@@ -3,11 +3,13 @@ import { cn } from "@/lib/utils"
 import { Icons } from "./Icons"
 import ReactMarkdown from "react-markdown";
 import { format } from "date-fns";
+import { forwardRef } from "react";
 interface MessageComponentProps {
-    message : ExtendedMessage,
-    isNextMessageSendBySameUser : boolean
+  message : ExtendedMessage,
+  isNextMessageSendBySameUser : boolean
 }
-const Message = ({message, isNextMessageSendBySameUser}:MessageComponentProps) => {
+const Message = forwardRef<HTMLDivElement, MessageComponentProps>(
+  ({ message, isNextMessageSendBySameUser }, ref) => {
   return (
     <div className={cn('flex items-end',{
       "justify-end": message.isUserMessage,
@@ -63,5 +65,6 @@ const Message = ({message, isNextMessageSendBySameUser}:MessageComponentProps) =
     </div>
   )
 }
-
+)
+Message.displayName = "Message"
 export default Message

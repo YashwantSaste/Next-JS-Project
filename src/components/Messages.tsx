@@ -3,8 +3,9 @@ import { INFINITE_QUERY_LIMIT } from "@/config/infiniteQuery"
 import { Loader2, MessageSquare } from "lucide-react"
 import Skeleton from "react-loading-skeleton"
 import Message from "./Message"
-import { useContext } from "react"
+import { useContext, useEffect, useRef } from "react"
 import { ChatContext } from "@/context/ChatContext"
+import { useIntersection } from "@mantine/hooks"
 interface MessageProps{
   fileId:string
 }
@@ -37,6 +38,19 @@ const Messages = ({fileId}:MessageProps) => {
     ...(isAiThinking ? [loadingMessage] : []),
     ...(messages ?? [] )
   ]
+
+
+  const lastMessageRef = useRef<HTMLDivElement>(null)
+  const { ref, entry } = useIntersection({
+    root: lastMessageRef?.current,
+    threshold: 1,
+  })
+
+  useEffect(()=>{
+    if(entry?.isIntersecting){
+      fetchNextPage();
+    }
+  },[entry,fetchNextPage])
   return (
     <div className="flex max-h-[calc(100vh - 3.5rem - 7rem)] border-zinc-200 flex-1 flex-col-reverse gap-4 p-3 overflow-y-auto scrollbar-track-blue-lighter scrollbar-w-2 scrolling-touch">
       {
@@ -46,10 +60,10 @@ const Messages = ({fileId}:MessageProps) => {
           const isNextMessageSendBySameUser = combinedMessages[index -1]?.isUserMessage === combinedMessages[index]?.isUserMessage
 
           if(index === combinedMessages.length - 1){
-            return <Message key={message.id} message={message} isNextMessageSendBySameUser={isNextMessageSendBySameUser}/>
+            return <Message ref={ref} key={message.id} message={message} isNextMessageSendBySameUser={isNextMessageSendBySameUser}/>
           }
           else{
-            return <Message message={message} isNextMessageSendBySameUser={isNextMessageSendBySameUser}/>
+            return <Message message={message} key={message.id} isNextMessageSendBySameUser={isNextMessageSendBySameUser}/>
           }
         })) : 
         isLoading ? 
@@ -59,7 +73,7 @@ const Messages = ({fileId}:MessageProps) => {
           <Skeleton className="h-16"/>
           <Skeleton className="h-16"/>
         </div>) :
-         (<div className="flex-1 flex flex-col items-center justify-center gap-2">
+         (<div className="flex-1 flex flex-col items-center justify-center gap-2" >
             <MessageSquare className="h-8 w-8 text-blue-500"/>
             <h3 className="font-semibold text-xl">
               We &apos; are all set
