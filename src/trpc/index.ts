@@ -9,61 +9,30 @@ import { PLANS } from '@/config/stripe';
 import { INFINITE_QUERY_LIMIT } from '@/config/infiniteQuery';
 export const appRouter = router({
   authCallBack: publicProcedure.query(async () => {
-    const { getUser } = getKindeServerSession();
-    const user = await getUser(); // Await the promise returned by getUser()
-    
-    const billingUrl = absoluteUrl("/dashboard/billing")
-    console.log(user);
+    const { getUser } = getKindeServerSession()
+    const user = await getUser()
 
-    if (!user || !user.id || !user.email) {
-      throw new TRPCError({ code: 'UNAUTHORIZED' });
-    }
-    const userId = user.id;
-    // Checking if the user already exists in the database or not
-    const existingUser = await dbConfig.user.findFirst({
+    if (!user?.id || !user?.email)
+      throw new TRPCError({ code: 'UNAUTHORIZED' })
+
+    // check if the user is in the database
+    const dbUser = await dbConfig.user.findFirst({
       where: {
-        id: user.id
+        id: user.id,
       },
-    });
-
-    //if not then
-
-    if(!existingUser){
-      throw new TRPCError({code:"UNAUTHORIZED"})
-    }
-
-    const subscriptionPlan = await getUserSubscriptionPlan();
-
-    if(subscriptionPlan?.isSubscribed && existingUser?.stripeCustomerId){
-      const stripeSession = await stripe.billingPortal.sessions.create({
-        customer:existingUser.stripeCustomerId,
-        return_url:billingUrl
-      })
-
-      return { url : stripeSession.url}
-    }
-
-    //user is not subscribed and want to buy our product
-
-    const stripeSession = await stripe.checkout.sessions.create({
-      success_url:billingUrl,
-      cancel_url:billingUrl,
-      payment_method_types:["card","paypal"],
-      mode:"subscription",
-      billing_address_collection:"auto",
-      line_items:[
-        {
-          price:PLANS.find((plan)=>plan.name === "Pro")?.price.priceIds.test,
-          quantity:1
-        }
-      ],
-      metadata:{
-        userId,
-
-      }
     })
 
-    return { url: stripeSession.url };
+    if (!dbUser) {
+      // create user in db
+      await dbConfig.user.create({
+        data: {
+          id: user.id,
+          email: user.email,
+        },
+      })
+    }
+
+    return { success: true }
   }),
   //the getUserFiles is not a publicProcedure but a authenticated procedure
   getUserFiles: privateProcedure.query(async ({ ctx }) => {
